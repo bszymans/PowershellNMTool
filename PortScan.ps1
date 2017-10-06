@@ -18,7 +18,7 @@ Node([String]$Hostname, [String]$MACAddress, [String]$IPV4Address)
    [Void]GetOpenPorts()
     {
       
-
+      $this.OpenPortsCurrent = ""
       write-host ($this.OpenPortsBaseline -eq $null)
       $Ports = Import-Csv "Ports.csv" 
       
@@ -44,6 +44,17 @@ Node([String]$Hostname, [String]$MACAddress, [String]$IPV4Address)
           $TCPClient.Dispose()
       }
     }
+    
+    [Void]SetPortBaseline()
+    {
+        $this.OpenPortsBaseline = $this.OpenPortsCurrent 
+    }
+
+    [String]GetPortBaseline()
+    {
+        return $this.OpenPortsBaseline
+    }
+
 
 }
 
@@ -98,18 +109,19 @@ function Set-AdapterSpeed([String]$HostName, [Bool] $option)
 
 }
 
-function get=AdapterSpeed([String] $HostName)
+function get-AdapterSpeed([String] $HostName)
 { 
     Invoke-Command -Computer $Hostname -ScriptBlock{Get-NetAdapterAdvancedProperty -Name Eth* | Format-Table DisplayName,DisplayValue}
 }
 
 #create array of node objects for discovered devices
-$nodes = Get-Devices
+$CurrentNodes = Get-Devices
 
 #
-foreach($node in $nodes)
+foreach($node in $CurrentNodes)
 {
     $node.GetOpenPorts()
+   
 }
 
 
