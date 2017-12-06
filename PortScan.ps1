@@ -168,6 +168,7 @@ class GUI{
 ##########################################################################################################################
 
 
-$Network = New-Object Network
-$Network.GetDevices()
-$Network.scanports()
+#$Network = New-Object Network
+#$Network.GetDevices()
+#$Network.scanports()
+$Network.setBaseline()
