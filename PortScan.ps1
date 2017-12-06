@@ -95,33 +95,34 @@ function Get-Devices()
     return $nodes
 }
 
-function Set-AdapterSpeed([String]$HostName, [Bool] $option)
+function Set-AdapterSpeed([String]$HostName, [Bool] $option = 1)
 {
     
     if($option -eq 1)
     {
         # change to 100/Full
-        Invoke-Command -Computer $TargetComputer -ScriptBlock{Set-NetAdapterAdvancedProperty -DisplayName 'Speed & Duplex' -DisplayValue '100 Mbps Full Duplex'}
+        Invoke-Command -Computer $HostName -ScriptBlock{Set-NetAdapterAdvancedProperty -DisplayName 'Speed & Duplex' -DisplayValue '100 Mbps Full Duplex'}
     }else{
         # change to Auto Negotiation
-        Invoke-Command -Computer $TargetComputer -ScriptBlock{Set-NetAdapterAdvancedProperty -DisplayName 'Speed & Duplex' -DisplayValue 'Auto Negotiation'}
+        Invoke-Command -Computer $Hostname -ScriptBlock{Set-NetAdapterAdvancedProperty -DisplayName 'Speed & Duplex' -DisplayValue 'Auto Negotiation'}
     }
 
 }
 
 function get-AdapterSpeed([String] $HostName)
 { 
-    Invoke-Command -Computer $Hostname -ScriptBlock{Get-NetAdapterAdvancedProperty -Name Eth* | Format-Table DisplayName,DisplayValue}
+    $info = Invoke-Command -Computer $Hostname -ScriptBlock{Get-NetAdapterAdvancedProperty -Name Eth* -DisplayName "Speed & Duplex"}
+    return $info.DisplayValue[0]
 }
 
 #create array of node objects for discovered devices
-$CurrentNodes = Get-Devices
+#$CurrentNodes = Get-Devices
 
 #
-foreach($node in $CurrentNodes)
-{
-    $node.GetOpenPorts()
+#foreach($node in $CurrentNodes)
+#{
+ #   $node.GetOpenPorts()
    
-}
-
+#}
+set-AdapterSpeed "TechWS-01" 0
 
