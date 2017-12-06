@@ -1,8 +1,8 @@
 ﻿Class Node {
     [String] $HostName = ""
     [String] $MACAddress = ""
-    [String] $IPv4Address = "192.168.65.11"
-    [String] $SubNetMask = "255.255.255.0"
+    [String] $IPv4Address = "localhost"
+
     [String]$OpenPortsCurrent = ""
     [String]$OpenPortsBaseline = ""
 
@@ -20,7 +20,7 @@ Node([String]$Hostname, [String]$MACAddress, [String]$IPV4Address)
       
       $this.OpenPortsCurrent = ""
       write-host ($this.OpenPortsBaseline -eq $null)
-      $Ports = Import-Csv "Ports.csv" 
+      $Ports = Import-Csv "\Ports.csv" 
       
       foreach($port in $Ports.GetEnumerator())
       {
@@ -56,11 +56,36 @@ Node([String]$Hostname, [String]$MACAddress, [String]$IPV4Address)
     }
 
 
+SetAdapterSpeed($option = 0, [PSCredential] $credentials)
+{
+    if($option -eq 1)
+    {
+        # change to 100/Full
+        Invoke-Command -Computer $this.HostName -Authentication Kerberos -Credential $credentials -ScriptBlock{Set-NetAdapterAdvancedProperty -DisplayName 'Speed & Duplex' -DisplayValue '100 Mbps Full Duplex'}
+    }else{
+        # change to Auto Negotiation
+        Invoke-Command -Computer $this.Hostname -Authentication Kerberos -Credential $credentials -ScriptBlock{Set-NetAdapterAdvancedProperty -DisplayName 'Speed & Duplex' -DisplayValue 'Auto Negotiation'}
+    }
+
 }
 
-function Get-Devices()
+[String]GetAdapterSpeed([PSCredential] $credentials)
+{ 
+
+    $info = Invoke-Command -Computer $this.Hostname -Authentication Kerberos -Credential $credentials  -ScriptBlock{Get-NetAdapterAdvancedProperty -Name Eth* -DisplayName "Speed & Duplex"}
+    return $info.DisplayValue
+}
+
+
+}
+############################################################################################################################################################
+class Network{
+          $NodeArray = @()
+          $Ports = @()
+
+GetDevices()
 {
-    $nodes = @()
+
     # get ip address of local machine
     $ip = get-WmiObject Win32_NetworkAdapterConfiguration|Where {$_.Ipaddress.length -gt 1} 
     $localIP = $ip.ipaddress[0] 
@@ -82,47 +107,67 @@ function Get-Devices()
                 {
                  $hostname = ([Net.DNS]::GetHostEntry($localIP)).Hostname
                  $MAC  = (arp -a $localIP | select-string -pattern "([0-9A-F]{2}([:-][0-9A-F]{2}){5})" -ALL).Matches.Value
-                 $nodes += [Node]::new($hostname, $MAC, $localIP)
+                 $this.NodeArray += [Node]::new($hostname, $MAC, $localIP)
 
                 }catch
                 {
                    
                    $MAC = (arp -a $localIP | select-string -pattern "([0-9A-F]{2}([:-][0-9A-F]{2}){5})" -ALL).Matches.Value
-                   $nodes += [Node]::new($localIP, $MAC, $localIP)
+                   $this.NodeArray += [Node]::new($localIP, $MAC, $localIP)
                 }
             }
     }
-    return $nodes
+
 }
 
-function Set-AdapterSpeed([String]$HostName, [Bool] $option = 1)
+scanPorts()
+{
+    ForEach ($node in $this.NodeArray)
+    {
+        $node.GetOpenPorts()
+    } 
+}
+
+
+setBaseline()
+{
+    if(test-path "Baseline.csv")
+        {
+            rm "Baseline.csv"
+        }
+    ForEach ($node in $this.NodeArray)
+    {
+        $node.OpenPortsBaseline = $node.OpenPortsCurrent
+        Export-CSV -InputObject $node -path "Baseline.csv" -append
+    }   
+
+    
+}
+loadBaseline()
 {
     
-    if($option -eq 1)
-    {
-        # change to 100/Full
-        Invoke-Command -Computer $HostName -ScriptBlock{Set-NetAdapterAdvancedProperty -DisplayName 'Speed & Duplex' -DisplayValue '100 Mbps Full Duplex'}
-    }else{
-        # change to Auto Negotiation
-        Invoke-Command -Computer $Hostname -ScriptBlock{Set-NetAdapterAdvancedProperty -DisplayName 'Speed & Duplex' -DisplayValue 'Auto Negotiation'}
-    }
 
 }
 
-function get-AdapterSpeed([String] $HostName)
-{ 
-    $info = Invoke-Command -Computer $Hostname -ScriptBlock{Get-NetAdapterAdvancedProperty -Name Eth* -DisplayName "Speed & Duplex"}
-    return $info.DisplayValue[0]
+
 }
 
-#create array of node objects for discovered devices
-#$CurrentNodes = Get-Devices
+##########################################################################################################################
+class GUI{
 
-#
-#foreach($node in $CurrentNodes)
-#{
- #   $node.GetOpenPorts()
-   
-#}
-set-AdapterSpeed "TechWS-01" 0
 
+
+
+
+}
+
+
+
+
+
+##########################################################################################################################
+
+
+$Network = New-Object Network
+$Network.GetDevices()
+$Network.scanports()
