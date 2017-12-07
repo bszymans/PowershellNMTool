@@ -146,7 +146,20 @@ setBaseline()
 loadBaseline()
 {
     
-
+    $csv = import-CSV "Baseline.csv"
+    forEach($node in $this.NodeArray)
+        {
+            
+            forEach($row in $csv)
+                {
+                    $nodeexists = 0
+                    if($row.hostname -eq $node.hostname)
+                        {
+                            $node.OpenPortsBaseline = $row.openportsbaseline
+                            $nodeexists = 1
+                        }
+                }
+        }
 }
 
 
@@ -168,7 +181,8 @@ class GUI{
 ##########################################################################################################################
 
 
-#$Network = New-Object Network
-#$Network.GetDevices()
-#$Network.scanports()
-$Network.setBaseline()
+$Network = New-Object Network
+$Network.GetDevices()
+$Network.scanports()
+#$Network.setBaseline()
+#$Network.loadbaseline()
