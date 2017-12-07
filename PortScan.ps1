@@ -77,7 +77,14 @@ SetAdapterSpeed($option = 0, [PSCredential] $credentials)
 }
 
 
-}
+
+}#End Class
+
+
+
+
+
+
 ############################################################################################################################################################
 class Network{
           $NodeArray = @()
@@ -163,10 +170,45 @@ loadBaseline()
 
     forEach($row in $csv)
         {
-            
+            $nodeexists = 0
+            forEach($node in $this.NodeArray)
+            {
+                if($node.hostname -eq $row.hostname)
+                    {
+                        $nodeexists = 1
+                    }
+            }
+            if($nodeexists -ne 1)
+                {
+                   
+                    $this.NodeArray += [Node]::new($row.hostname, $row.MAC, $row.localIP)
+                }
         }
 
 }
+
+
+[String]getRogue()
+    {
+        [string]$RogueDevices = @()
+        forEach($node in $this.NodeArray)
+        {
+            if($node.openportscurrent = $NULL)
+                {
+                    $RogueDevices += $node.Hostname
+
+                }
+        }
+        return $RogueDevices
+    }
+
+
+
+
+
+
+
+
 
 
 }
@@ -191,4 +233,5 @@ $Network = New-Object Network
 $Network.GetDevices()
 $Network.scanports()
 #$Network.setBaseline()
-#$Network.loadbaseline()
+$Network.loadbaseline()
+$Network.getrogue()
