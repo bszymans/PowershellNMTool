@@ -152,14 +152,20 @@ loadBaseline()
             
             forEach($row in $csv)
                 {
-                    $nodeexists = 0
+                    
                     if($row.hostname -eq $node.hostname)
                         {
                             $node.OpenPortsBaseline = $row.openportsbaseline
-                            $nodeexists = 1
+      
                         }
                 }
         }
+
+    forEach($row in $csv)
+        {
+            
+        }
+
 }
 
 
