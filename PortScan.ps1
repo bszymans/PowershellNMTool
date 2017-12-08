@@ -89,6 +89,7 @@ SetAdapterSpeed($option = 0, [PSCredential] $credentials)
 class Network{
           $NodeArray = @()
           $Ports = @()
+          $RogueDevices = @()
 
 GetDevices()
 {
@@ -187,35 +188,240 @@ loadBaseline()
 
 }
 
-
-[String]getRogue()
+getRogue()
     {
-        [string]$RogueDevices = @()
+
+        $this.loadBaseline()
         forEach($node in $this.NodeArray)
         {
-            if($node.openportscurrent = $NULL)
+            if($node.openportsbaseline -eq $NULL)
                 {
-                    $RogueDevices += $node.Hostname
-
+                    $this.RogueDevices += $node.Hostname
+                    
                 }
+                
         }
-        return $RogueDevices
+
     }
 
 
 
 
 
-
-
-
-
-
-}
+    }
 
 ##########################################################################################################################
 class GUI{
 
+displayGUI() {
+
+
+Add-Type -AssemblyName System.Windows.Forms
+
+$Form = New-Object system.Windows.Forms.Form
+$Form.Text = "Form"
+$Form.TopMost = $true
+$Form.Width = 756
+$Form.Height = 466
+
+$deviceListBox = New-Object system.windows.Forms.ListBox
+$deviceListBox.Text = "listBox"
+$deviceListBox.Width = 441
+$deviceListBox.Height = 240
+$deviceListBox.location = new-object system.drawing.point(263,28)
+$Form.controls.Add($deviceListBox)
+
+$deviceListBox = New-Object system.windows.Forms.ListBox
+$deviceListBox.Text = "listBox"
+$deviceListBox.Width = 441
+$deviceListBox.Height = 240
+$deviceListBox.location = new-object system.drawing.point(263,28)
+$Form.controls.Add($deviceListBox)
+
+$outputBox = New-Object system.windows.Forms.ListView
+$outputBox.Text = "listView"
+$outputBox.Width = 704
+$outputBox.Height = 108
+$outputBox.location = new-object system.drawing.point(13,313)
+$Form.controls.Add($outputBox)
+
+$outputBox = New-Object system.windows.Forms.ListView
+$outputBox.Text = "listView"
+$outputBox.Width = 704
+$outputBox.Height = 108
+$outputBox.location = new-object system.drawing.point(13,313)
+$Form.controls.Add($outputBox)
+
+$netSpeedtxt = New-Object system.windows.Forms.TextBox
+$netSpeedtxt.Width = 100
+$netSpeedtxt.Height = 20
+$netSpeedtxt.location = new-object system.drawing.point(88,286)
+$netSpeedtxt.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($netSpeedtxt)
+
+
+$netSpeedtxt = New-Object system.windows.Forms.TextBox
+$netSpeedtxt.Width = 100
+$netSpeedtxt.Height = 20
+$netSpeedtxt.location = new-object system.drawing.point(88,286)
+$netSpeedtxt.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($netSpeedtxt)
+
+$label11 = New-Object system.windows.Forms.Label
+$label11.Text = "Netspeed"
+$label11.AutoSize = $true
+$label11.Width = 25
+$label11.Height = 10
+$label11.location = new-object system.drawing.point(19,286)
+$label11.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($label11)
+
+$label11 = New-Object system.windows.Forms.Label
+$label11.Text = "Netspeed"
+$label11.AutoSize = $true
+$label11.Width = 25
+$label11.Height = 10
+$label11.location = new-object system.drawing.point(19,286)
+$label11.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($label11)
+
+$setNetSpeedbtn = New-Object system.windows.Forms.Button
+$setNetSpeedbtn.Text = "Set NetSpeed"
+$setNetSpeedbtn.Width = 117
+$setNetSpeedbtn.Height = 30
+$setNetSpeedbtn.Add_Click({
+write-host "test"
+})
+$setNetSpeedbtn.location = new-object system.drawing.point(196,275)
+$setNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($setNetSpeedbtn)
+
+$setNetSpeedbtn = New-Object system.windows.Forms.Button
+$setNetSpeedbtn.Text = "Set NetSpeed"
+$setNetSpeedbtn.Width = 117
+$setNetSpeedbtn.Height = 30
+$setNetSpeedbtn.Add_Click({
+write-host "test"
+})
+$setNetSpeedbtn.location = new-object system.drawing.point(196,275)
+$setNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($setNetSpeedbtn)
+
+$label15 = New-Object system.windows.Forms.Label
+$label15.Text = "Device List"
+$label15.AutoSize = $true
+$label15.Width = 25
+$label15.Height = 10
+$label15.location = new-object system.drawing.point(439,8)
+$label15.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($label15)
+
+$refreshbtn = New-Object system.windows.Forms.Button
+$refreshbtn.Text = "Refresh Devices"
+$refreshbtn.Width = 130
+$refreshbtn.Height = 30
+$refreshbtn.Add_Click({
+write-host "test"
+})
+$refreshbtn.location = new-object system.drawing.point(569,275)
+$refreshbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($refreshbtn)
+
+$refreshbtn = New-Object system.windows.Forms.Button
+$refreshbtn.Text = "Refresh Devices"
+$refreshbtn.Width = 130
+$refreshbtn.Height = 30
+$refreshbtn.Add_Click({
+write-host "test"
+})
+
+$refreshbtn.location = new-object system.drawing.point(569,275)
+$refreshbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($refreshbtn)
+
+$S=scanPortsbtn = New-Object system.windows.Forms.Button
+$S=scanPortsbtn.Text = "Scan Ports"
+$S=scanPortsbtn.Width = 112
+$S=scanPortsbtn.Height = 30
+$S=scanPortsbtn.Add_Click({
+write-host "test"
+})
+$S=scanPortsbtn.location = new-object system.drawing.point(450,275)
+$S=scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+
+$Form.controls.Add($S)
+
+$S=scanPortsbtn = New-Object system.windows.Forms.Button
+$S=scanPortsbtn.Text = "Scan Ports"
+$S=scanPortsbtn.Width = 112
+$S=scanPortsbtn.Height = 30
+$S=scanPortsbtn.Add_Click({
+#add here code triggered by the event
+})
+$S=scanPortsbtn.location = new-object system.drawing.point(450,275)
+$S=scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($S)
+
+$setBaselinebtn = New-Object system.windows.Forms.Button
+$setBaselinebtn.Text = "Set Baseline"
+$setBaselinebtn.Width = 101
+$setBaselinebtn.Height = 30
+$setBaselinebtn.Add_Click({
+#add here code triggered by the event
+})
+$setBaselinebtn.location = new-object system.drawing.point(334,275)
+$setBaselinebtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($setBaselinebtn)
+
+$setBaselinebtn = New-Object system.windows.Forms.Button
+$setBaselinebtn.Text = "Set Baseline"
+$setBaselinebtn.Width = 101
+$setBaselinebtn.Height = 30
+$setBaselinebtn.Add_Click({
+#add here code triggered by the event
+})
+$setBaselinebtn.location = new-object system.drawing.point(334,275)
+$setBaselinebtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($setBaselinebtn)
+
+$label22 = New-Object system.windows.Forms.Label
+$label22.Text = "Range"
+$label22.AutoSize = $true
+$label22.Width = 25
+$label22.Height = 10
+$label22.location = new-object system.drawing.point(7,22)
+$label22.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($label22)
+
+$label22 = New-Object system.windows.Forms.Label
+$label22.Text = "Range"
+$label22.AutoSize = $true
+$label22.Width = 25
+$label22.Height = 10
+$label22.location = new-object system.drawing.point(7,22)
+$label22.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($label22)
+
+$rangeBox = New-Object system.windows.Forms.TextBox
+$rangeBox.Text = "24"
+$rangeBox.Width = 30
+$rangeBox.Height = 20
+$rangeBox.location = new-object system.drawing.point(61,22)
+$rangeBox.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($rangeBox)
+
+$rangeBox = New-Object system.windows.Forms.TextBox
+$rangeBox.Text = "24"
+$rangeBox.Width = 30
+$rangeBox.Height = 20
+$rangeBox.location = new-object system.drawing.point(61,22)
+$rangeBox.Font = "Microsoft Sans Serif,10"
+$Form.controls.Add($rangeBox)
+
+[void]$Form.ShowDialog()
+$Form.Dispose()
+
+}
 
 
 
@@ -231,7 +437,10 @@ class GUI{
 
 $Network = New-Object Network
 $Network.GetDevices()
-$Network.scanports()
+
+#$Network.scanports()
 #$Network.setBaseline()
 $Network.loadbaseline()
-$Network.getrogue()
+$Network.getRogue()
+$gui = new-object gui
+$gui.displaygui()
