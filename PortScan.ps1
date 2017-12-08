@@ -339,28 +339,28 @@ $refreshbtn.location = new-object system.drawing.point(569,275)
 $refreshbtn.Font = "Microsoft Sans Serif,10,style=Bold"
 $Form.controls.Add($refreshbtn)
 
-$S=scanPortsbtn = New-Object system.windows.Forms.Button
-$S=scanPortsbtn.Text = "Scan Ports"
-$S=scanPortsbtn.Width = 112
-$S=scanPortsbtn.Height = 30
-$S=scanPortsbtn.Add_Click({
+$scanPortsbtn = New-Object system.windows.Forms.Button
+$scanPortsbtn.Text = "Scan Ports"
+$scanPortsbtn.Width = 112
+$scanPortsbtn.Height = 30
+$scanPortsbtn.Add_Click({
 write-host "test"
 })
-$S=scanPortsbtn.location = new-object system.drawing.point(450,275)
-$S=scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$scanPortsbtn.location = new-object system.drawing.point(450,275)
+$scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
 
-$Form.controls.Add($S)
+$Form.controls.Add($scanPortsbtn)
 
-$S=scanPortsbtn = New-Object system.windows.Forms.Button
-$S=scanPortsbtn.Text = "Scan Ports"
-$S=scanPortsbtn.Width = 112
-$S=scanPortsbtn.Height = 30
-$S=scanPortsbtn.Add_Click({
+$scanPortsbtn = New-Object system.windows.Forms.Button
+$scanPortsbtn.Text = "Scan Ports"
+$scanPortsbtn.Width = 112
+$scanPortsbtn.Height = 30
+$scanPortsbtn.Add_Click({
 #add here code triggered by the event
 })
-$S=scanPortsbtn.location = new-object system.drawing.point(450,275)
-$S=scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
-$Form.controls.Add($S)
+$scanPortsbtn.location = new-object system.drawing.point(450,275)
+$scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($scanPortsbtn)
 
 $setBaselinebtn = New-Object system.windows.Forms.Button
 $setBaselinebtn.Text = "Set Baseline"
