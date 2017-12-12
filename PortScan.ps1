@@ -228,7 +228,7 @@ displayGUI($network) {
 Add-Type -AssemblyName System.Windows.Forms
 
 $Form = New-Object system.Windows.Forms.Form
-$Form.Text = "Form"
+$Form.Text = "PowerShell Network Management Tool"
 $Form.TopMost = $true
 $Form.Width = 756
 $Form.Height = 466
