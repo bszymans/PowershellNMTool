@@ -213,7 +213,7 @@ getRogue()
 ##########################################################################################################################
 class GUI{
 
-displayGUI() {
+displayGUI($network) {
 
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -231,12 +231,6 @@ $deviceListBox.Height = 240
 $deviceListBox.location = new-object system.drawing.point(263,28)
 $Form.controls.Add($deviceListBox)
 
-$deviceListBox = New-Object system.windows.Forms.ListBox
-$deviceListBox.Text = "listBox"
-$deviceListBox.Width = 441
-$deviceListBox.Height = 240
-$deviceListBox.location = new-object system.drawing.point(263,28)
-$Form.controls.Add($deviceListBox)
 
 $outputBox = New-Object system.windows.Forms.ListView
 $outputBox.Text = "listView"
@@ -301,7 +295,7 @@ $setNetSpeedbtn.Text = "Set NetSpeed"
 $setNetSpeedbtn.Width = 117
 $setNetSpeedbtn.Height = 30
 $setNetSpeedbtn.Add_Click({
-write-host "test"
+
 })
 $setNetSpeedbtn.location = new-object system.drawing.point(196,275)
 $setNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
@@ -316,40 +310,25 @@ $label15.location = new-object system.drawing.point(439,8)
 $label15.Font = "Microsoft Sans Serif,10"
 $Form.controls.Add($label15)
 
-$refreshbtn = New-Object system.windows.Forms.Button
-$refreshbtn.Text = "Refresh Devices"
-$refreshbtn.Width = 130
-$refreshbtn.Height = 30
-$refreshbtn.Add_Click({
-write-host "test"
-})
-$refreshbtn.location = new-object system.drawing.point(569,275)
-$refreshbtn.Font = "Microsoft Sans Serif,10,style=Bold"
-$Form.controls.Add($refreshbtn)
 
 $refreshbtn = New-Object system.windows.Forms.Button
 $refreshbtn.Text = "Refresh Devices"
 $refreshbtn.Width = 130
 $refreshbtn.Height = 30
 $refreshbtn.Add_Click({
-write-host "test"
+$deviceListBox.items.Clear()
+$deviceListBox.BeginUpdate()
+foreach($node in $network.NodeArray)
+{
+    [void]$deviceListBox.Items.Add($node.hostname + " " + $node.openportscurrent)
+}
+$deviceListBox.EndUpdate()
 })
 
 $refreshbtn.location = new-object system.drawing.point(569,275)
 $refreshbtn.Font = "Microsoft Sans Serif,10,style=Bold"
 $Form.controls.Add($refreshbtn)
 
-$scanPortsbtn = New-Object system.windows.Forms.Button
-$scanPortsbtn.Text = "Scan Ports"
-$scanPortsbtn.Width = 112
-$scanPortsbtn.Height = 30
-$scanPortsbtn.Add_Click({
-write-host "test"
-})
-$scanPortsbtn.location = new-object system.drawing.point(450,275)
-$scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
-
-$Form.controls.Add($scanPortsbtn)
 
 $scanPortsbtn = New-Object system.windows.Forms.Button
 $scanPortsbtn.Text = "Scan Ports"
@@ -362,16 +341,7 @@ $scanPortsbtn.location = new-object system.drawing.point(450,275)
 $scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
 $Form.controls.Add($scanPortsbtn)
 
-$setBaselinebtn = New-Object system.windows.Forms.Button
-$setBaselinebtn.Text = "Set Baseline"
-$setBaselinebtn.Width = 101
-$setBaselinebtn.Height = 30
-$setBaselinebtn.Add_Click({
-#add here code triggered by the event
-})
-$setBaselinebtn.location = new-object system.drawing.point(334,275)
-$setBaselinebtn.Font = "Microsoft Sans Serif,10,style=Bold"
-$Form.controls.Add($setBaselinebtn)
+
 
 $setBaselinebtn = New-Object system.windows.Forms.Button
 $setBaselinebtn.Text = "Set Baseline"
@@ -393,14 +363,7 @@ $label22.location = new-object system.drawing.point(7,22)
 $label22.Font = "Microsoft Sans Serif,10"
 $Form.controls.Add($label22)
 
-$label22 = New-Object system.windows.Forms.Label
-$label22.Text = "Range"
-$label22.AutoSize = $true
-$label22.Width = 25
-$label22.Height = 10
-$label22.location = new-object system.drawing.point(7,22)
-$label22.Font = "Microsoft Sans Serif,10"
-$Form.controls.Add($label22)
+
 
 $rangeBox = New-Object system.windows.Forms.TextBox
 $rangeBox.Text = "24"
@@ -410,13 +373,6 @@ $rangeBox.location = new-object system.drawing.point(61,22)
 $rangeBox.Font = "Microsoft Sans Serif,10"
 $Form.controls.Add($rangeBox)
 
-$rangeBox = New-Object system.windows.Forms.TextBox
-$rangeBox.Text = "24"
-$rangeBox.Width = 30
-$rangeBox.Height = 20
-$rangeBox.location = new-object system.drawing.point(61,22)
-$rangeBox.Font = "Microsoft Sans Serif,10"
-$Form.controls.Add($rangeBox)
 
 [void]$Form.ShowDialog()
 $Form.Dispose()
@@ -438,9 +394,9 @@ $Form.Dispose()
 $Network = New-Object Network
 $Network.GetDevices()
 
-#$Network.scanports()
+$Network.scanports()
 #$Network.setBaseline()
 $Network.loadbaseline()
 $Network.getRogue()
 $gui = new-object gui
-$gui.displaygui()
+$gui.displaygui($Network)
