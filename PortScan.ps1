@@ -108,9 +108,9 @@ GetDevices()
     # remove last octet from ip and replace with 1 to 254
     $temp = $localIP.split('.')
     #lowered for demo/testing
-    for($i = 1; $i -lt 50; $i++)
+    for($i = 1; $i -lt 25; $i++)
     {
-        write-progress -activity "Enumerating Network" -status "Percent Complete" -PercentComplete (($i/50) * 100)
+        write-progress -activity "Enumerating Network" -status "Percent Complete" -PercentComplete (($i/25) * 100)
         $temp[-1] = $i
         $localIP = $temp -join '.'
         if ($ping.send($localIP,$pingTimeout).status -eq "Success")
@@ -229,7 +229,7 @@ Add-Type -AssemblyName System.Windows.Forms
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.Text = "PowerShell Network Management Tool"
-$Form.TopMost = $true
+#$Form.TopMost = $true
 $Form.Width = 756
 $Form.Height = 466
 
@@ -238,6 +238,7 @@ $deviceListBox.Text = "listBox"
 $deviceListBox.Width = 441
 $deviceListBox.Height = 240
 $deviceListBox.location = new-object system.drawing.point(263,28)
+
 $Form.controls.Add($deviceListBox)
 
 
@@ -275,7 +276,9 @@ $setNetSpeedbtn.Text = "Set NetSpeed"
 $setNetSpeedbtn.Width = 117
 $setNetSpeedbtn.Height = 30
 $setNetSpeedbtn.Add_Click({
-write-host "test"
+$selected =  $deviceListBox.SelectedItem
+$selected = $selected -split '\s+'
+write-host $selected[0]
 })
 $setNetSpeedbtn.location = new-object system.drawing.point(196,275)
 $setNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
@@ -409,6 +412,5 @@ $Network.scanports()
 #$Network.setBaseline()
 $Network.loadbaseline()
 $Network.getRogue()
-$gui.outputbox.text = "test"
-$gui.outputbox.refresh
+
 
