@@ -5,6 +5,7 @@
 
     [String]$OpenPortsCurrent = ""
     [String]$OpenPortsBaseline = ""
+    [string]$output = ""
 
 Node(){
 }
@@ -19,8 +20,8 @@ Node([String]$Hostname, [String]$MACAddress, [String]$IPV4Address)
     {
       
       $this.OpenPortsCurrent = ""
-      write-host ($this.OpenPortsBaseline -eq $null)
-      $Ports = Import-Csv "\Ports.csv" 
+
+      $Ports = Import-Csv "Ports.csv" 
       
       foreach($port in $Ports.GetEnumerator())
       {
@@ -29,16 +30,18 @@ Node([String]$Hostname, [String]$MACAddress, [String]$IPV4Address)
           $portResult = $TCPClient.BeginConnect($this.IPv4Address, $port.ports, $null, $null)
           $Wait = $portResult.AsyncWaitHandle.WaitOne(1000)
         
+  
           if ($portResult.IsCompleted  -eq $true)
           {
+              
               $this.OpenPortsCurrent += $port.ports + " "
           }
           if ($Wait)
           {
               try {
-                  $Null = $TCPClient.EndConnect($portResult)
+                  $Null = $TCPClient.EndConnect($portResult) 
               }catch {
-                   Write-Warning $_
+                   #write-host $_ > errorlog.txt -WarningAction SilentlyContinue
               }
           }
           $TCPClient.Dispose()
@@ -104,9 +107,10 @@ GetDevices()
 
     # remove last octet from ip and replace with 1 to 254
     $temp = $localIP.split('.')
-
-    for($i = 1; $i -lt 255; $i++)
+    #lowered for demo/testing
+    for($i = 1; $i -lt 50; $i++)
     {
+        write-progress -activity "Enumerating Network" -status "Percent Complete" -PercentComplete (($i/50) * 100)
         $temp[-1] = $i
         $localIP = $temp -join '.'
         if ($ping.send($localIP,$pingTimeout).status -eq "Success")
@@ -130,9 +134,13 @@ GetDevices()
 
 scanPorts()
 {
+    $i = 0
+   
     ForEach ($node in $this.NodeArray)
     {
+        write-progress -activity "Scanning Ports" -status "Percent Complete" -PercentComplete (($i/$this.NodeArray.count) * 100)
         $node.GetOpenPorts()
+        $i = $i + 1
     } 
 }
 
@@ -212,6 +220,7 @@ getRogue()
 
 ##########################################################################################################################
 class GUI{
+$Credentials
 
 displayGUI($network) {
 
@@ -232,19 +241,14 @@ $deviceListBox.location = new-object system.drawing.point(263,28)
 $Form.controls.Add($deviceListBox)
 
 
-$outputBox = New-Object system.windows.Forms.ListView
-$outputBox.Text = "listView"
+$outputBox = New-Object system.windows.Forms.ListBox
+$outputBox.Text = "listBox"
 $outputBox.Width = 704
 $outputBox.Height = 108
 $outputBox.location = new-object system.drawing.point(13,313)
 $Form.controls.Add($outputBox)
 
-$outputBox = New-Object system.windows.Forms.ListView
-$outputBox.Text = "listView"
-$outputBox.Width = 704
-$outputBox.Height = 108
-$outputBox.location = new-object system.drawing.point(13,313)
-$Form.controls.Add($outputBox)
+
 
 $netSpeedtxt = New-Object system.windows.Forms.TextBox
 $netSpeedtxt.Width = 100
@@ -254,12 +258,6 @@ $netSpeedtxt.Font = "Microsoft Sans Serif,10"
 $Form.controls.Add($netSpeedtxt)
 
 
-$netSpeedtxt = New-Object system.windows.Forms.TextBox
-$netSpeedtxt.Width = 100
-$netSpeedtxt.Height = 20
-$netSpeedtxt.location = new-object system.drawing.point(88,286)
-$netSpeedtxt.Font = "Microsoft Sans Serif,10"
-$Form.controls.Add($netSpeedtxt)
 
 $label11 = New-Object system.windows.Forms.Label
 $label11.Text = "Netspeed"
@@ -270,14 +268,7 @@ $label11.location = new-object system.drawing.point(19,286)
 $label11.Font = "Microsoft Sans Serif,10"
 $Form.controls.Add($label11)
 
-$label11 = New-Object system.windows.Forms.Label
-$label11.Text = "Netspeed"
-$label11.AutoSize = $true
-$label11.Width = 25
-$label11.Height = 10
-$label11.location = new-object system.drawing.point(19,286)
-$label11.Font = "Microsoft Sans Serif,10"
-$Form.controls.Add($label11)
+
 
 $setNetSpeedbtn = New-Object system.windows.Forms.Button
 $setNetSpeedbtn.Text = "Set NetSpeed"
@@ -290,16 +281,7 @@ $setNetSpeedbtn.location = new-object system.drawing.point(196,275)
 $setNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
 $Form.controls.Add($setNetSpeedbtn)
 
-$setNetSpeedbtn = New-Object system.windows.Forms.Button
-$setNetSpeedbtn.Text = "Set NetSpeed"
-$setNetSpeedbtn.Width = 117
-$setNetSpeedbtn.Height = 30
-$setNetSpeedbtn.Add_Click({
 
-})
-$setNetSpeedbtn.location = new-object system.drawing.point(196,275)
-$setNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
-$Form.controls.Add($setNetSpeedbtn)
 
 $label15 = New-Object system.windows.Forms.Label
 $label15.Text = "Device List"
@@ -320,7 +302,16 @@ $deviceListBox.items.Clear()
 $deviceListBox.BeginUpdate()
 foreach($node in $network.NodeArray)
 {
-    [void]$deviceListBox.Items.Add($node.hostname + " " + $node.openportscurrent)
+if(($node.openportsbaseline -eq ""))
+        {
+
+            
+            [void]$deviceListBox.Items.Add($node.hostname + " " + "*ROGUE DEVICE*" + " "+ $node.openportscurrent)
+        }else
+        {
+            [void]$deviceListBox.Items.Add($node.hostname + " " + $node.openportscurrent)
+      
+        } 
 }
 $deviceListBox.EndUpdate()
 })
@@ -335,7 +326,25 @@ $scanPortsbtn.Text = "Scan Ports"
 $scanPortsbtn.Width = 112
 $scanPortsbtn.Height = 30
 $scanPortsbtn.Add_Click({
-#add here code triggered by the event
+$network.scanPorts()
+$deviceListBox.items.Clear()
+$deviceListBox.BeginUpdate()
+foreach($node in $network.NodeArray)
+{   if($node.openportsbaseline = "")
+        {
+            $outputBox.Items.add("scanning " + $node.hostname)
+            $outputBox.Refresh()
+            
+            [void]$deviceListBox.Items.Add($node.hostname + " " + "*ROGUE DEVICE*" + " "+ $node.openportscurrent)
+        }else
+        {
+            $outputBox.items.add( "scanning " + $node.hostname)
+            $outputBox.Refresh()
+            [void]$deviceListBox.Items.Add($node.hostname + " "+ $node.openportscurrent)
+        }
+}
+$deviceListBox.EndUpdate()
+
 })
 $scanPortsbtn.location = new-object system.drawing.point(450,275)
 $scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
@@ -348,7 +357,7 @@ $setBaselinebtn.Text = "Set Baseline"
 $setBaselinebtn.Width = 101
 $setBaselinebtn.Height = 30
 $setBaselinebtn.Add_Click({
-#add here code triggered by the event
+$network.setBaseline()
 })
 $setBaselinebtn.location = new-object system.drawing.point(334,275)
 $setBaselinebtn.Font = "Microsoft Sans Serif,10,style=Bold"
@@ -375,6 +384,7 @@ $Form.controls.Add($rangeBox)
 
 
 [void]$Form.ShowDialog()
+$refreshbtn.PerformClick()
 $Form.Dispose()
 
 }
@@ -389,14 +399,16 @@ $Form.Dispose()
 
 
 ##########################################################################################################################
-
+$gui = new-object gui
+$gui.Credentials = Get-Credential
 
 $Network = New-Object Network
 $Network.GetDevices()
-
+$gui.displaygui($Network)
 $Network.scanports()
 #$Network.setBaseline()
 $Network.loadbaseline()
 $Network.getRogue()
-$gui = new-object gui
-$gui.displaygui($Network)
+$gui.outputbox.text = "test"
+$gui.outputbox.refresh
+
