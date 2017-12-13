@@ -1,4 +1,5 @@
 ﻿Class Node {
+    
     [String] $HostName = ""
     [String] $MACAddress = ""
     [String] $IPv4Address = "localhost"
@@ -161,7 +162,12 @@ setBaseline()
 }
 loadBaseline()
 {
-    
+    $wshell = New-Object -ComObject Wscript.Shell
+    if(!(test-path "Baseline.csv"))
+        {
+           $wshell.Popup("Baseline.csv not found, creating Baseline.csv",0,"Baseline.csv not found, creating Baseline.csv",0x1)
+           write-host $null > "Baseline.csv"
+        }
     $csv = import-CSV "Baseline.csv"
     forEach($node in $this.NodeArray)
         {
@@ -190,7 +196,8 @@ loadBaseline()
             if($nodeexists -ne 1)
                 {
                    
-                    $this.NodeArray += [Node]::new($row.hostname + " " + "*Rogue Device", $row.MAC, $row.localIP)
+                    $this.NodeArray += [Node]::new($row.hostname, $row.MAC, $row.localIP)
+                    $this.RogueDevices += $row.hostname
                 }
         }
 
@@ -227,7 +234,7 @@ displayGUI($network) {
 
 
 Add-Type -AssemblyName System.Windows.Forms
-
+$wshell = New-Object -ComObject Wscript.Shell
 $Form = New-Object system.Windows.Forms.Form
 $Form.Text = "PowerShell Network Management Tool"
 #$Form.TopMost = $true
@@ -249,26 +256,6 @@ $outputBox.Width = 704
 $outputBox.Height = 108
 $outputBox.location = new-object system.drawing.point(13,313)
 $Form.controls.Add($outputBox)
-
-
-
-$netSpeedtxt = New-Object system.windows.Forms.TextBox
-$netSpeedtxt.Width = 100
-$netSpeedtxt.Height = 20
-$netSpeedtxt.location = new-object system.drawing.point(88,286)
-$netSpeedtxt.Font = "Microsoft Sans Serif,10"
-$Form.controls.Add($netSpeedtxt)
-
-
-
-$label11 = New-Object system.windows.Forms.Label
-$label11.Text = "Netspeed"
-$label11.AutoSize = $true
-$label11.Width = 25
-$label11.Height = 10
-$label11.location = new-object system.drawing.point(19,286)
-$label11.Font = "Microsoft Sans Serif,10"
-$Form.controls.Add($label11)
 
 
 
@@ -318,14 +305,14 @@ forEach($node in $network.NodeArray)
                    $currentspeed = $node.getadapterspeed($this.Credentials)
 
                    $outputBox.Items.add("Current NIC Setting is " + $currentspeed + " on " + $node.hostname )
-                   $netSpeedtxt.Text = $currentspeed
+
                    $outputBox.Refresh()
             }
 
             
     }
 })
-$getNetSpeedbtn.location = new-object system.drawing.point(87,240)
+$getNetSpeedbtn.location = new-object system.drawing.point(70,275)
 $getNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
 $Form.controls.Add($getNetSpeedbtn)
 
@@ -342,10 +329,14 @@ $Form.controls.Add($label15)
 
 
 $refreshbtn = New-Object system.windows.Forms.Button
-$refreshbtn.Text = "Refresh Devices"
+$refreshbtn.Text = "Get Devices"
 $refreshbtn.Width = 130
 $refreshbtn.Height = 30
 $refreshbtn.Add_Click({
+if ($rangeBox.text -eq "24")
+    {
+$network.getdevices()
+$network.getRogue()
 $deviceListBox.items.Clear()
 $deviceListBox.BeginUpdate()
 $network.loadBaseline()
@@ -362,7 +353,7 @@ foreach($node in $network.NodeArray)
        }
    } 
 
-if(($node.openportsbaseline -eq ""))
+if(($network.RogueDevices -contains $node.hostname ))
         {
             
             [void]$deviceListBox.Items.Add($node.hostname + " " + "*ROGUE DEVICE*" + " "+ $different)
@@ -373,6 +364,11 @@ if(($node.openportsbaseline -eq ""))
         } 
 }
 $deviceListBox.EndUpdate()
+}else
+ {
+   $wshell.Popup("Invalid Mask",0,"Invalid Mask",0x1)
+ }
+
 })
 
 $refreshbtn.location = new-object system.drawing.point(569,275)
@@ -385,6 +381,11 @@ $scanPortsbtn.Text = "Scan Ports"
 $scanPortsbtn.Width = 112
 $scanPortsbtn.Height = 30
 $scanPortsbtn.Add_Click({
+if ($rangeBox.text -eq "24")
+    {
+    
+     
+    
 $network.scanPorts()
 $deviceListBox.items.Clear()
 $deviceListBox.BeginUpdate()
@@ -401,7 +402,7 @@ foreach($node in $network.NodeArray)
        }
    } 
   
-  if($node.openportsbaseline = "")
+  if($network.RogueDevices -contains $node.hostname)
         {
             $outputBox.Items.add("scanning " + $node.hostname)
             $outputBox.Refresh()            
@@ -414,7 +415,10 @@ foreach($node in $network.NodeArray)
         }
 }
 $deviceListBox.EndUpdate()
-
+}else
+ {
+   $wshell.Popup("Invalid Mask",0,"Invalid Mask",0x1)
+ }
 })
 $scanPortsbtn.location = new-object system.drawing.point(450,275)
 $scanPortsbtn.Font = "Microsoft Sans Serif,10,style=Bold"
@@ -474,11 +478,11 @@ $gui.Credentials = Get-Credential
 
 $Network = New-Object Network
 
-$Network.GetDevices()
+#$Network.GetDevices()
 $Network.loadbaseline()
 
 $gui.displaygui($Network)
-$GUI.scanPortsbtn.performclick()
+#$GUI.scanPortsbtn.performclick()
 #$Network.scanports()
 
 #$Network.getRogue()
