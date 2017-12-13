@@ -278,11 +278,55 @@ $setNetSpeedbtn.Height = 30
 $setNetSpeedbtn.Add_Click({
 $selected =  $deviceListBox.SelectedItem
 $selected = $selected -split '\s+'
-write-host $selected[0]
+forEach($node in $network.NodeArray)
+    {
+        if ($node.hostname -eq $selected[0])
+            {
+                $currentspeed = $node.getadapterspeed($this.Credentials)
+                if($currentspeed -contains "100")
+                {
+                   $node.setadapterspeed(0, $this.Credentials)
+                   $outputBox.Items.add("NIC Speed set to Auto Negotiate")
+                   $outputBox.Refresh()
+                }else {
+                   $node.setadapterspeed(1, $this.Credentials)
+                   $outputBox.Items.add("NIC Speed set 100/Full")
+                   $outputBox.Refresh()
+                }
+
+            }
+    }
 })
 $setNetSpeedbtn.location = new-object system.drawing.point(196,275)
 $setNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
 $Form.controls.Add($setNetSpeedbtn)
+
+$getNetSpeedbtn = New-Object system.windows.Forms.Button
+$getNetSpeedbtn.Text = "Get NetSpeed"
+$getNetSpeedbtn.Width = 117
+$getNetSpeedbtn.Height = 30
+$getNetSpeedbtn.Add_Click({
+$selected =  $deviceListBox.SelectedItem
+$selected = $selected -split '\s+'
+forEach($node in $network.NodeArray)
+    {
+
+        if ($node.hostname -eq $selected[0])
+            {
+              
+                   $currentspeed = $node.getadapterspeed($this.Credentials)
+
+                   $outputBox.Items.add("Current NIC Setting is " + $currentspeed + " on " + $node.hostname )
+                   $netSpeedtxt.Text = $currentspeed
+                   $outputBox.Refresh()
+            }
+
+            
+    }
+})
+$getNetSpeedbtn.location = new-object system.drawing.point(87,240)
+$getNetSpeedbtn.Font = "Microsoft Sans Serif,10,style=Bold"
+$Form.controls.Add($getNetSpeedbtn)
 
 
 
