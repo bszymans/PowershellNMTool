@@ -108,9 +108,9 @@ GetDevices()
     # remove last octet from ip and replace with 1 to 254
     $temp = $localIP.split('.')
     #lowered for demo/testing
-    for($i = 1; $i -lt 25; $i++)
+    for($i = 1; $i -lt 255; $i++)
     {
-        write-progress -activity "Enumerating Network" -status "Percent Complete" -PercentComplete (($i/25) * 100)
+        write-progress -activity "Enumerating Network" -status "Percent Complete" -PercentComplete (($i/255) * 100)
         $temp[-1] = $i
         $localIP = $temp -join '.'
         if ($ping.send($localIP,$pingTimeout).status -eq "Success")
@@ -172,7 +172,7 @@ loadBaseline()
                     if($row.hostname -eq $node.hostname)
                         {
                             $node.OpenPortsBaseline = $row.openportsbaseline
-      
+                         
                         }
                 }
         }
@@ -190,7 +190,7 @@ loadBaseline()
             if($nodeexists -ne 1)
                 {
                    
-                    $this.NodeArray += [Node]::new($row.hostname, $row.MAC, $row.localIP)
+                    $this.NodeArray += [Node]::new($row.hostname + " " + "*Rogue Device", $row.MAC, $row.localIP)
                 }
         }
 
@@ -204,6 +204,7 @@ getRogue()
         {
             if($node.openportsbaseline -eq $NULL)
                 {
+                  
                     $this.RogueDevices += $node.Hostname
                     
                 }
@@ -220,7 +221,7 @@ getRogue()
 
 ##########################################################################################################################
 class GUI{
-$Credentials
+[PSCredential]$Credentials
 
 displayGUI($network) {
 
@@ -347,16 +348,27 @@ $refreshbtn.Height = 30
 $refreshbtn.Add_Click({
 $deviceListBox.items.Clear()
 $deviceListBox.BeginUpdate()
+$network.loadBaseline()
 foreach($node in $network.NodeArray)
 {
+  $different
+  $current = $node.openportscurrent -split '\s+'
+  $base = $node.openportsbaseline -split '\s+'
+  foreach($item in $current)
+   {
+       if($base -inotcontains $item)
+       {
+          $different += $item + " "
+       }
+   } 
+
 if(($node.openportsbaseline -eq ""))
         {
-
             
-            [void]$deviceListBox.Items.Add($node.hostname + " " + "*ROGUE DEVICE*" + " "+ $node.openportscurrent)
+            [void]$deviceListBox.Items.Add($node.hostname + " " + "*ROGUE DEVICE*" + " "+ $different)
         }else
         {
-            [void]$deviceListBox.Items.Add($node.hostname + " " + $node.openportscurrent)
+            [void]$deviceListBox.Items.Add($node.hostname + " " + $different)
       
         } 
 }
@@ -377,17 +389,28 @@ $network.scanPorts()
 $deviceListBox.items.Clear()
 $deviceListBox.BeginUpdate()
 foreach($node in $network.NodeArray)
-{   if($node.openportsbaseline = "")
+{ 
+  $different
+  $current = $node.openportscurrent -split '\s+'
+  $base = $node.openportsbaseline -split '\s+'
+  foreach($item in $current)
+   {
+       if($base -inotcontains $item)
+       {
+          $different += $item + " "
+       }
+   } 
+  
+  if($node.openportsbaseline = "")
         {
             $outputBox.Items.add("scanning " + $node.hostname)
-            $outputBox.Refresh()
-            
-            [void]$deviceListBox.Items.Add($node.hostname + " " + "*ROGUE DEVICE*" + " "+ $node.openportscurrent)
+            $outputBox.Refresh()            
+            [void]$deviceListBox.Items.Add($node.hostname + " " + "*ROGUE DEVICE*" + " "+ $openportsdifferent)
         }else
         {
             $outputBox.items.add( "scanning " + $node.hostname)
             $outputBox.Refresh()
-            [void]$deviceListBox.Items.Add($node.hostname + " "+ $node.openportscurrent)
+            [void]$deviceListBox.Items.Add($node.hostname + " "+ $openportsdifferent)
         }
 }
 $deviceListBox.EndUpdate()
@@ -450,11 +473,14 @@ $gui = new-object gui
 $gui.Credentials = Get-Credential
 
 $Network = New-Object Network
+
 $Network.GetDevices()
-$gui.displaygui($Network)
-$Network.scanports()
-#$Network.setBaseline()
 $Network.loadbaseline()
-$Network.getRogue()
+
+$gui.displaygui($Network)
+$GUI.scanPortsbtn.performclick()
+#$Network.scanports()
+
+#$Network.getRogue()
 
 
